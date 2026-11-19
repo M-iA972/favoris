@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mes favoris</title>
+  <!-- On relie la feuille de style -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main>
+    <h1>Mes favoris</h1>
+
+    <!-- Formulaire d'ajout d'un favori -->
+    <form id="formulaire-favori">
+      <label for="champ-url">URL</label>
+      <input type="url" id="champ-url" placeholder="https://exemple.com" required>
+
+      <label for="champ-titre">Titre</label>
+      <input type="text" id="champ-titre" placeholder="Mon site préféré" required>
+
+      <label for="champ-categorie">Catégorie</label>
+      <input type="text" id="champ-categorie" placeholder="Travail, Loisirs..." required>
+
+      <button type="submit">Ajouter</button>
+    </form>
+
+    <!-- Liste où les favoris seront affichés -->
+    <h2>Liste des favoris</h2>
+    <ul id="liste-favoris"></ul>
+  </main>
+
+  <!-- On charge le JavaScript à la fin, quand la page est construite -->
+  <script src="app.js"></script>
+</body>
+</html>
