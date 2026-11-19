@@ -5,8 +5,37 @@ const champTitre = document.getElementById("champ-titre");
 const champCategorie = document.getElementById("champ-categorie");
 const listeFavoris = document.getElementById("liste-favoris");
 
-// Tableau qui contient tous les favoris (en mémoire pour l'instant)
-const favoris = [];
+// Nom de la "clé" sous laquelle on range les favoris dans localStorage
+const CLE_STOCKAGE = "favoris";
+
+// Fonction qui lit les favoris enregistrés dans localStorage
+function chargerFavoris() {
+  // localStorage ne stocke que du texte : on récupère donc une chaîne
+  const texte = localStorage.getItem(CLE_STOCKAGE);
+
+  // Si rien n'a encore été enregistré, on part d'une liste vide
+  if (texte === null) {
+    return [];
+  }
+
+  // On transforme le texte (format JSON) en vrai tableau JavaScript.
+  // try/catch : si le texte est abîmé, on évite que la page plante.
+  try {
+    const donnees = JSON.parse(texte);
+    return Array.isArray(donnees) ? donnees : [];
+  } catch (erreur) {
+    return [];
+  }
+}
+
+// Fonction qui enregistre le tableau des favoris dans localStorage
+function sauvegarderFavoris() {
+  // JSON.stringify transforme le tableau en texte pour pouvoir le stocker
+  localStorage.setItem(CLE_STOCKAGE, JSON.stringify(favoris));
+}
+
+// Tableau qui contient tous les favoris, rempli au démarrage depuis localStorage
+const favoris = chargerFavoris();
 
 // Fonction qui affiche tous les favoris dans la liste
 function afficherFavoris() {
@@ -48,11 +77,15 @@ formulaire.addEventListener("submit", function (evenement) {
     categorie: champCategorie.value.trim(),
   };
 
-  // On l'ajoute au tableau puis on met à jour l'affichage
+  // On l'ajoute au tableau, on sauvegarde, puis on met à jour l'affichage
   favoris.push(nouveauFavori);
+  sauvegarderFavoris();
   afficherFavoris();
 
   // On vide le formulaire et on replace le curseur dans le champ URL
   formulaire.reset();
   champUrl.focus();
 });
+
+// Au chargement de la page, on affiche les favoris déjà enregistrés
+afficherFavoris();
