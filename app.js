@@ -6,6 +6,9 @@ const champCategorie = document.getElementById("champ-categorie");
 const listeFavoris = document.getElementById("liste-favoris");
 const champRecherche = document.getElementById("champ-recherche");
 
+// Favori en cours de modification (null = aucun)
+let favoriEnEdition = null;
+
 // Nom de la "clé" sous laquelle on range les favoris dans localStorage
 const CLE_STOCKAGE = "favoris";
 
@@ -127,14 +130,14 @@ function afficherFavoris() {
     groupes[nom].forEach(function (favori) {
       const element = document.createElement("li");
 
-      // Le lien cliquable vers le site
-      const lien = document.createElement("a");
-      lien.href = favori.url;
-      lien.textContent = favori.titre;
-      lien.target = "_blank"; // ouvre le lien dans un nouvel onglet
-      lien.rel = "noopener noreferrer"; // sécurité pour les nouveaux onglets
+      // Si ce favori est en cours de modification, on affiche le formulaire ;
+      // sinon, on affiche le lien et les boutons
+      if (favori === favoriEnEdition) {
+        element.appendChild(creerFormulaireEdition(favori));
+      } else {
+        remplirFavoriNormal(element, favori);
+      }
 
-      element.appendChild(lien);
       liste.appendChild(element);
     });
 
@@ -143,6 +146,112 @@ function afficherFavoris() {
     section.appendChild(liste);
     listeFavoris.appendChild(section);
   });
+}
+
+// Remplit un <li> avec l'affichage normal d'un favori : lien + boutons
+function remplirFavoriNormal(element, favori) {
+  // Le lien cliquable vers le site
+  const lien = document.createElement("a");
+  lien.href = favori.url;
+  lien.textContent = favori.titre; // textContent évite d'injecter du HTML
+  lien.target = "_blank"; // ouvre le lien dans un nouvel onglet
+  lien.rel = "noopener noreferrer"; // sécurité pour les nouveaux onglets
+
+  // Un petit conteneur pour garder les deux boutons côte à côte
+  const actions = document.createElement("div");
+  actions.className = "actions";
+
+  // Le bouton pour modifier ce favori
+  const boutonModifier = document.createElement("button");
+  boutonModifier.type = "button";
+  boutonModifier.className = "bouton-modifier";
+  boutonModifier.textContent = "Modifier";
+  boutonModifier.addEventListener("click", function () {
+    // On retient quel favori on modifie, puis on redessine la liste
+    favoriEnEdition = favori;
+    afficherFavoris();
+  });
+
+  // Le bouton pour supprimer ce favori
+  const boutonSupprimer = document.createElement("button");
+  boutonSupprimer.type = "button";
+  boutonSupprimer.className = "bouton-supprimer";
+  boutonSupprimer.textContent = "Supprimer";
+  boutonSupprimer.addEventListener("click", function () {
+    supprimerFavori(favori);
+  });
+
+  actions.appendChild(boutonModifier);
+  actions.appendChild(boutonSupprimer);
+  element.appendChild(lien);
+  element.appendChild(actions);
+}
+
+// Crée un petit champ de saisie avec son label, pré-rempli avec une valeur
+function creerChamp(texteLabel, type, valeur) {
+  const label = document.createElement("label");
+  label.textContent = texteLabel;
+
+  const champ = document.createElement("input");
+  champ.type = type;
+  champ.value = valeur;
+  champ.required = true; // le champ ne peut pas rester vide
+
+  // Mettre le champ DANS le label les relie sans avoir besoin d'un id
+  label.appendChild(champ);
+  return { label: label, champ: champ };
+}
+
+// Crée le formulaire de modification d'un favori, pré-rempli
+function creerFormulaireEdition(favori) {
+  const form = document.createElement("form");
+  form.className = "formulaire-edition";
+
+  const titre = creerChamp("Titre", "text", favori.titre);
+  const url = creerChamp("URL", "url", favori.url);
+  const categorie = creerChamp("Catégorie", "text", favori.categorie);
+
+  // Bouton pour enregistrer les modifications
+  const boutonEnregistrer = document.createElement("button");
+  boutonEnregistrer.type = "submit";
+  boutonEnregistrer.textContent = "Enregistrer";
+
+  // Bouton pour annuler : on quitte le mode modification sans rien changer
+  const boutonAnnuler = document.createElement("button");
+  boutonAnnuler.type = "button";
+  boutonAnnuler.className = "bouton-annuler";
+  boutonAnnuler.textContent = "Annuler";
+  boutonAnnuler.addEventListener("click", function () {
+    favoriEnEdition = null;
+    afficherFavoris();
+  });
+
+  const actions = document.createElement("div");
+  actions.className = "actions";
+  actions.appendChild(boutonEnregistrer);
+  actions.appendChild(boutonAnnuler);
+
+  form.appendChild(titre.label);
+  form.appendChild(url.label);
+  form.appendChild(categorie.label);
+  form.appendChild(actions);
+
+  // Quand on clique sur "Enregistrer" (ou qu'on appuie sur Entrée)...
+  form.addEventListener("submit", function (evenement) {
+    evenement.preventDefault(); // pas de rechargement de la page
+
+    // ...on met à jour l'objet favori directement avec les nouvelles valeurs
+    favori.titre = titre.champ.value.trim();
+    favori.url = url.champ.value.trim();
+    favori.categorie = categorie.champ.value.trim();
+
+    // On sauvegarde, on quitte le mode modification et on redessine
+    sauvegarderFavoris();
+    favoriEnEdition = null;
+    afficherFavoris();
+  });
+
+  return form;
 }
 
 // Quand on valide le formulaire...
@@ -166,6 +275,25 @@ formulaire.addEventListener("submit", function (evenement) {
   formulaire.reset();
   champUrl.focus();
 });
+
+// Fonction qui supprime un favori, après confirmation
+function supprimerFavori(favori) {
+  // confirm() ouvre une petite fenêtre "OK / Annuler" : évite les clics par erreur
+  const ok = confirm('Supprimer le favori "' + favori.titre + '" ?');
+  if (!ok) {
+    return;
+  }
+
+  // On cherche la position du favori dans le tableau...
+  const position = favoris.indexOf(favori);
+
+  // ...et on le retire (splice enlève 1 élément à cette position)
+  if (position !== -1) {
+    favoris.splice(position, 1);
+    sauvegarderFavoris();
+    afficherFavoris();
+  }
+}
 
 // À chaque frappe dans le champ de recherche, on réaffiche la liste filtrée.
 // L'événement "input" se déclenche à chaque caractère tapé ou effacé.
