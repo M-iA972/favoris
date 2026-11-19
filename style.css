@@ -84,6 +84,63 @@ button:hover {
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
 }
 
+/* Dans chaque carte : le lien à gauche, le bouton à droite */
+#liste-favoris li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Les boutons d'un favori, côte à côte */
+.actions {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0; /* les boutons ne se tassent pas si le titre est long */
+}
+
+/* Les petits boutons dans la liste (Modifier, Supprimer, Enregistrer, Annuler) */
+#liste-favoris button {
+  margin-top: 0;
+  padding: 4px 10px;
+  font-size: 0.85rem;
+}
+
+/* Le bouton "Annuler" : gris, moins mis en avant */
+.bouton-annuler {
+  background-color: #888;
+}
+
+.bouton-annuler:hover {
+  background-color: #666;
+}
+
+/* Le formulaire de modification prend toute la largeur de la carte */
+.formulaire-edition {
+  flex: 1;
+  padding: 0;
+  box-shadow: none;
+}
+
+/* Chaque label est au-dessus de son champ */
+.formulaire-edition label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* Le bouton "Supprimer" : plus petit et rouge pour signaler le danger */
+.bouton-supprimer {
+  margin-top: 0;
+  padding: 4px 10px;
+  font-size: 0.85rem;
+  background-color: #e5484d;
+}
+
+.bouton-supprimer:hover {
+  background-color: #c13a3e;
+}
+
 #liste-favoris a {
   color: #4a6cf7;
   font-weight: bold;
