@@ -93,3 +93,28 @@ button:hover {
 #liste-favoris a:hover {
   text-decoration: underline;
 }
+
+/* Le champ de recherche prend toute la largeur, au-dessus de la liste */
+#champ-recherche {
+  width: 100%;
+  box-sizing: border-box; /* la largeur inclut le padding et la bordure */
+  margin-bottom: 16px;
+}
+
+/* Message affiché quand aucun favori n'est trouvé */
+.message-vide {
+  color: #777;
+  font-style: italic;
+  text-align: center;
+}
+
+/* Cache visuellement un élément tout en le laissant lisible
+   par les lecteurs d'écran (utile pour l'accessibilité) */
+.cache {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+}

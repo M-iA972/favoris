@@ -4,6 +4,7 @@ const champUrl = document.getElementById("champ-url");
 const champTitre = document.getElementById("champ-titre");
 const champCategorie = document.getElementById("champ-categorie");
 const listeFavoris = document.getElementById("liste-favoris");
+const champRecherche = document.getElementById("champ-recherche");
 
 // Nom de la "clé" sous laquelle on range les favoris dans localStorage
 const CLE_STOCKAGE = "favoris";
@@ -37,13 +38,33 @@ function sauvegarderFavoris() {
 // Tableau qui contient tous les favoris, rempli au démarrage depuis localStorage
 const favoris = chargerFavoris();
 
-// Fonction qui range les favoris par catégorie.
+// Fonction qui garde seulement les favoris correspondant à la recherche.
+// On compare en minuscules pour que "GitHub" et "github" soient trouvés pareil.
+function filtrerFavoris(recherche) {
+  const texte = recherche.trim().toLowerCase();
+
+  // Si le champ est vide, on garde tous les favoris
+  if (texte === "") {
+    return favoris;
+  }
+
+  // filter() crée un nouveau tableau avec les favoris qui passent le test
+  return favoris.filter(function (favori) {
+    return (
+      favori.titre.toLowerCase().includes(texte) ||
+      favori.url.toLowerCase().includes(texte) ||
+      favori.categorie.toLowerCase().includes(texte)
+    );
+  });
+}
+
+// Fonction qui range une liste de favoris par catégorie.
 // Elle renvoie un objet du type :
 // { "Travail": [favori1, favori2], "Loisirs": [favori3] }
-function grouperParCategorie() {
+function grouperParCategorie(liste) {
   const groupes = {};
 
-  favoris.forEach(function (favori) {
+  liste.forEach(function (favori) {
     const nom = favori.categorie;
 
     // Si c'est la première fois qu'on voit cette catégorie,
@@ -64,7 +85,21 @@ function afficherFavoris() {
   // On vide la zone avant de la remplir à nouveau
   listeFavoris.innerHTML = "";
 
-  const groupes = grouperParCategorie();
+  // On filtre d'abord selon la recherche, puis on groupe le résultat
+  const favorisFiltres = filtrerFavoris(champRecherche.value);
+
+  // Si rien ne correspond, on affiche un petit message et on s'arrête là
+  if (favorisFiltres.length === 0) {
+    const message = document.createElement("p");
+    message.className = "message-vide";
+    message.textContent = favoris.length === 0
+      ? "Aucun favori pour le moment."
+      : "Aucun favori ne correspond à votre recherche.";
+    listeFavoris.appendChild(message);
+    return;
+  }
+
+  const groupes = grouperParCategorie(favorisFiltres);
 
   // On récupère les noms des catégories et on les trie par ordre alphabétique
   // (localeCompare gère correctement les accents du français)
@@ -126,6 +161,10 @@ formulaire.addEventListener("submit", function (evenement) {
   formulaire.reset();
   champUrl.focus();
 });
+
+// À chaque frappe dans le champ de recherche, on réaffiche la liste filtrée.
+// L'événement "input" se déclenche à chaque caractère tapé ou effacé.
+champRecherche.addEventListener("input", afficherFavoris);
 
 // Au chargement de la page, on affiche les favoris déjà enregistrés
 afficherFavoris();
