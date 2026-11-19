@@ -59,13 +59,16 @@ function filtrerFavoris(recherche) {
 }
 
 // Fonction qui range une liste de favoris par catégorie.
+// Les majuscules ne comptent pas : "Tech" et "tech" vont dans le même groupe.
 // Elle renvoie un objet du type :
-// { "Travail": [favori1, favori2], "Loisirs": [favori3] }
+// { "travail": [favori1, favori2], "loisirs": [favori3] }
+// (les clés sont en minuscules, mais chaque favori garde son écriture d'origine)
 function grouperParCategorie(liste) {
   const groupes = {};
 
   liste.forEach(function (favori) {
-    const nom = favori.categorie;
+    // On met le nom en minuscules pour qu'il serve de "clé" de regroupement
+    const nom = favori.categorie.toLowerCase();
 
     // Si c'est la première fois qu'on voit cette catégorie,
     // on lui crée une liste vide
@@ -114,7 +117,9 @@ function afficherFavoris() {
 
     // Le titre de la catégorie
     const titre = document.createElement("h3");
-    titre.textContent = nom; // textContent évite d'injecter du HTML
+    // La clé est en minuscules : pour le titre, on reprend l'écriture
+    // du premier favori du groupe (par exemple "Tech" plutôt que "tech")
+    titre.textContent = groupes[nom][0].categorie; // textContent évite d'injecter du HTML
 
     // La liste des favoris de cette catégorie
     const liste = document.createElement("ul");
