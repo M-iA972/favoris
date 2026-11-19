@@ -37,31 +37,71 @@ function sauvegarderFavoris() {
 // Tableau qui contient tous les favoris, rempli au démarrage depuis localStorage
 const favoris = chargerFavoris();
 
-// Fonction qui affiche tous les favoris dans la liste
+// Fonction qui range les favoris par catégorie.
+// Elle renvoie un objet du type :
+// { "Travail": [favori1, favori2], "Loisirs": [favori3] }
+function grouperParCategorie() {
+  const groupes = {};
+
+  favoris.forEach(function (favori) {
+    const nom = favori.categorie;
+
+    // Si c'est la première fois qu'on voit cette catégorie,
+    // on lui crée une liste vide
+    if (groupes[nom] === undefined) {
+      groupes[nom] = [];
+    }
+
+    // On ajoute le favori dans la liste de sa catégorie
+    groupes[nom].push(favori);
+  });
+
+  return groupes;
+}
+
+// Fonction qui affiche tous les favoris, groupés par catégorie
 function afficherFavoris() {
-  // On vide la liste avant de la remplir à nouveau
+  // On vide la zone avant de la remplir à nouveau
   listeFavoris.innerHTML = "";
 
-  // Pour chaque favori, on crée un élément <li>
-  favoris.forEach(function (favori) {
-    const element = document.createElement("li");
+  const groupes = grouperParCategorie();
 
-    // Le lien cliquable vers le site
-    const lien = document.createElement("a");
-    lien.href = favori.url;
-    lien.textContent = favori.titre; // textContent évite d'injecter du HTML
-    lien.target = "_blank"; // ouvre le lien dans un nouvel onglet
-    lien.rel = "noopener noreferrer"; // sécurité pour les nouveaux onglets
+  // On récupère les noms des catégories et on les trie par ordre alphabétique
+  // (localeCompare gère correctement les accents du français)
+  const nomsCategories = Object.keys(groupes).sort(function (a, b) {
+    return a.localeCompare(b, "fr");
+  });
 
-    // L'étiquette de catégorie
-    const categorie = document.createElement("span");
-    categorie.className = "categorie";
-    categorie.textContent = favori.categorie;
+  // Pour chaque catégorie, on crée un bloc : un titre + une liste
+  nomsCategories.forEach(function (nom) {
+    const section = document.createElement("section");
+    section.className = "groupe-categorie";
 
-    // On assemble le tout
-    element.appendChild(lien);
-    element.appendChild(categorie);
-    listeFavoris.appendChild(element);
+    // Le titre de la catégorie
+    const titre = document.createElement("h3");
+    titre.textContent = nom; // textContent évite d'injecter du HTML
+
+    // La liste des favoris de cette catégorie
+    const liste = document.createElement("ul");
+
+    groupes[nom].forEach(function (favori) {
+      const element = document.createElement("li");
+
+      // Le lien cliquable vers le site
+      const lien = document.createElement("a");
+      lien.href = favori.url;
+      lien.textContent = favori.titre;
+      lien.target = "_blank"; // ouvre le lien dans un nouvel onglet
+      lien.rel = "noopener noreferrer"; // sécurité pour les nouveaux onglets
+
+      element.appendChild(lien);
+      liste.appendChild(element);
+    });
+
+    // On assemble : titre + liste dans la section, puis la section dans la page
+    section.appendChild(titre);
+    section.appendChild(liste);
+    listeFavoris.appendChild(section);
   });
 }
 
